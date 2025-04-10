@@ -17,7 +17,8 @@ TRANSITION_PROBABILITIES = {
 }
 
 def parse_input_file(file_path):
-    with open(file_path, 'r') as f:
+    path = "../txt/" + file_path
+    with open(path, 'r') as f:
         content = f.read()
     dim = tuple(map(int, re.search(r'<dim>\n(\d+)\s+(\d+)', content).groups()))
     walls = re.findall(r'<walls>\n((?:\(\d+,\d+\)\n?)*)', content)
