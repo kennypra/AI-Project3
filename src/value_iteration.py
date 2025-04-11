@@ -55,17 +55,59 @@ def print_board(V, dim, walls, iteration):
     print()
 
 def value_iteration(dim, walls, rewards, discount_factor, threshold, living_reward):
+    # initialize possible states (i.e. all board spaces excluding walls)
     states = [(x, y) for x in range(dim[0]) for y in range(dim[1]) if (x, y) not in walls]
+
+    # V holds the estimated value of each state
+    # - empty squares store 0
     V = {s: 0 for s in states}
-    
+
+    # - reward squares hold the reward value
     for r in rewards:
         V[r] = rewards[r]
     
-    raise NotImplementedError
-    '''
-    TODO: Implement value iteration here.
-    '''
+    # initialize delta
+    delta = float('inf')  
 
+    # while loop runs until threshold is met
+    while delta >= threshold:
+        delta = 0  # reset
+
+        new_V = {}  # initialize V
+
+        for s in states:
+            # rewards are terminal states, move to the next iteration
+            if s in rewards:
+                new_V[s] = rewards[s]
+                continue
+
+            max_value = float('-inf')
+
+            # iterate U/D/L/R
+            for a in ACTIONS:
+                expected_value = 0
+
+                # iterate through 3 possible actions
+                for direction, prob in TRANSITION_PROBABILITIES[a]:
+                    # return next state tuple, return same position if wall or OOB
+                    next_state = get_next_state(s, direction, dim, walls)
+
+                    # retrieve reward associated with the next state or penalty if empty position
+                    reward = rewards.get(next_state, living_reward)
+
+                    # calculate the expected value
+                    expected_value += prob * (reward + discount_factor * V[next_state])
+
+                max_value = max(max_value, expected_value)
+
+            # update new V and delta
+            new_V[s] = max_value
+            delta = max(delta, abs(V[s] - new_V[s]))
+
+        # update V
+        V = new_V
+
+     
     return V
 
 def extract_policy(V, dim, walls, rewards):
