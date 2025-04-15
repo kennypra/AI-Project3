@@ -69,45 +69,49 @@ def value_iteration(dim, walls, rewards, discount_factor, threshold, living_rewa
     # initialize delta
     delta = float('inf')  
 
-    # while loop runs until threshold is met
-    while delta >= threshold:
-        delta = 0  # reset
 
-        new_V = {}  # initialize V
+    iteration = 0
+    max_iterations = 1000  # or more
 
-        for s in states:
-            # rewards are terminal states, move to the next iteration
-            if s in rewards:
-                new_V[s] = rewards[s]
-                continue
+    while delta >= threshold and iteration < max_iterations:
+       delta = 0
+       iteration += 1
+      
+       new_V = {}  # initialize V
+       for s in states:
+           # rewards are terminal states, move to the next iteration
+           if s in rewards:
+               new_V[s] = rewards[s]
+               continue
 
-            max_value = float('-inf')
+           max_value = float('-inf')
 
-            # iterate U/D/L/R
-            for a in ACTIONS:
-                expected_value = 0
+           # iterate U/D/L/R
+           for a in ACTIONS:
+               expected_value = 0
 
-                # iterate through 3 possible actions
-                for direction, prob in TRANSITION_PROBABILITIES[a]:
-                    # return next state tuple, return same position if wall or OOB
-                    next_state = get_next_state(s, direction, dim, walls)
+               # iterate through 3 possible actions
+               for direction, prob in TRANSITION_PROBABILITIES[a]:
+                   # return next state tuple, return same position if wall or OOB
+                   next_state = get_next_state(s, direction, dim, walls)
 
-                    # retrieve reward associated with the next state or penalty if empty position
-                    reward = rewards.get(next_state, living_reward)
+                   # retrieve reward associated with the next state or penalty if empty position
+                   reward = rewards.get(next_state, living_reward)
 
-                    # calculate the expected value
-                    expected_value += prob * (reward + discount_factor * V[next_state])
+                   # calculate the expected value
+                   expected_value += prob * (reward + discount_factor * V[next_state])
 
-                max_value = max(max_value, expected_value)
+               max_value = max(max_value, expected_value)
 
-            # update new V and delta
-            new_V[s] = max_value
-            delta = max(delta, abs(V[s] - new_V[s]))
+           # update new V and delta
+           new_V[s] = max_value
+           delta = max(delta, abs(V[s] - new_V[s]))
+       # update V
+       V = new_V
+       print_board(V, dim, walls, iteration)
+    else:
+       print("Warning: Max iterations reached before convergence.")
 
-        # update V
-        V = new_V
-
-     
     return V
 
 def extract_policy(V, dim, walls, rewards):
